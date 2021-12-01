@@ -68,7 +68,14 @@ lib.makeScopeWithSplicing splicePackages newScope otherSplices (_: {}) (spliced:
   };
 in
 
-impure-cmds // appleSourcePackages // chooseLibs // {
+impure-cmds // appleSourcePackages // chooseLibs // 
+
+let cctoolsResolve =
+  callPackage ../os-specific/darwin/cctools/port.nix {
+    stdenv = if stdenv.isDarwin then stdenv else pkgs.libcxxStdenv;
+  };
+in {
+
 
   inherit apple_sdk;
 
@@ -94,9 +101,7 @@ impure-cmds // appleSourcePackages // chooseLibs // {
     bintools = self.binutils-unwrapped;
   };
 
-  cctools = callPackage ../os-specific/darwin/cctools/port.nix {
-    stdenv = if stdenv.isDarwin then stdenv else pkgs.libcxxStdenv;
-  };
+  cctools = cctoolsResolve;
 
   # TODO: remove alias.
   cf-private = self.apple_sdk.frameworks.CoreFoundation;
@@ -120,7 +125,7 @@ impure-cmds // appleSourcePackages // chooseLibs // {
     executable = true;
 
     text = ''
-      CODESIGN_ALLOCATE=${targetPrefix}codesign_allocate \
+      CODESIGN_ALLOCATE=${cctoolsPort}/bin/${targetPrefix}codesign_allocate \
         ${self.sigtool}/bin/codesign -f -s - "$linkerOutput"
     '';
   };
