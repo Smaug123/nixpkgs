@@ -15,6 +15,8 @@ assert builtins.elem type [ "aspnetcore" "runtime" "sdk"];
 , libuuid
 , zlib
 , curl
+, jq
+, bash
 , lttng-ust_2_12
 }:
 
@@ -31,6 +33,8 @@ let
     runtime = ".NET Runtime ${version}";
     sdk = ".NET SDK ${version}";
   };
+  obtainPackage = ./build.sh;
+  maui = ./maui.txt;
 in stdenv.mkDerivation rec {
   inherit pname version;
 
@@ -63,13 +67,20 @@ in stdenv.mkDerivation rec {
     runHook postInstall
   '';
 
+  postInstall = ''
+    echo ${bash}/bin/bash
+    echo ${obtainPackage}
+    echo ${curl}/bin/curl
+    echo ${jq}/bin/jq
+    ${bash}/bin/bash ${obtainPackage} ${curl}/bin/curl ${jq}/bin/jq $out/packs install ${maui} || echo $?
+    exit 1
+  '';
+
   postFixup = lib.optionalString stdenv.isLinux ''
     patchelf --set-interpreter "${stdenv.cc.bintools.dynamicLinker}" $out/dotnet
     patchelf --set-rpath "${rpath}" $out/dotnet
     find $out -type f -name "*.so" -exec patchelf --set-rpath '$ORIGIN:${rpath}' {} \;
     find $out -type f \( -name "apphost" -or -name "createdump" \) -exec patchelf --set-interpreter "${stdenv.cc.bintools.dynamicLinker}" --set-rpath '$ORIGIN:${rpath}' {} \;
-
-    $out/bin/dotnet workload install maui
   '';
 
   doInstallCheck = true;
