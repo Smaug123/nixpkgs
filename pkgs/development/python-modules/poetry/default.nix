@@ -32,10 +32,10 @@
 
 buildPythonPackage rec {
   pname = "poetry";
-  version = "1.1.14";
+  version = "1.2.0";
   format = "pyproject";
 
-  disabled = pythonOlder "3.6";
+  disabled = pythonOlder "3.7";
 
   src = fetchFromGitHub {
     owner = "python-poetry";
@@ -75,8 +75,6 @@ buildPythonPackage rec {
     shellingham
     tomlkit
     virtualenv
-  ] ++ lib.optionals (pythonOlder "3.7") [
-    dataclasses
   ] ++ lib.optionals (pythonOlder "3.8") [
     importlib-metadata
   ];
@@ -117,16 +115,6 @@ buildPythonPackage rec {
   ] ++ lib.optionals (pythonAtLeast "3.10") [
     # RuntimeError: 'auto_spec' might be a typo; use unsafe=True if this is intended
     "test_info_setup_complex_pep517_error"
-  ];
-
-  patches = [
-    # The following patch addresses a minor incompatibility with
-    # pytest-mock. This is addressed upstream in
-    # https://github.com/python-poetry/poetry/pull/3457
-    (fetchpatch {
-      url = "https://github.com/python-poetry/poetry/commit/8ddceb7c52b3b1f35412479707fa790e5d60e691.diff";
-      sha256 = "yHjFb9xJBLFOqkOZaJolKviTdtST9PMFwH9n8ud2Y+U=";
-    })
   ];
 
   # Allow for package to use pep420's native namespaces
