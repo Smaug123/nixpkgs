@@ -24,7 +24,7 @@ let
 
 in buildPythonPackage rec {
   pname = "cython";
-  version = "0.29.30";
+  version = "0.29.32";
 
   src = fetchPypi {
     pname = "Cython";
